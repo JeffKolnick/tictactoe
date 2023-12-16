@@ -1,8 +1,5 @@
 
-def draw_board():
-
-    # Takes the inputs for number of rows and columns
-    # (int, int) and prints the board accordingly
+def draw_board():    
 
     print("__|___|__")
     print("__|___|__")
