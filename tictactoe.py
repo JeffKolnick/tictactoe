@@ -84,9 +84,18 @@ def next_move(board_state, turn, X_or_O):
                         legal_moves.append([row, col])
 
             for move in legal_moves:
-                temp_board_state = copy.deepcopy(board_state)  #Create temporary board_state to check for potential
-                temp_board_state[move[0]][move[1]] = X_or_O #winning moves
-                if three_in_a_row(temp_board_state, X_or_O):
+                temp_board_state = copy.deepcopy(board_state)   #Create temporary board_state to check for potential
+                temp_board_state[move[0]][move[1]] = X_or_O     #winning moves
+                if three_in_a_row(temp_board_state, X_or_O):                    
+                    draw_board(temp_board_state)
+                    print("{} wins!".format(X_or_O))
+                    return False
+
+            for move in legal_moves:
+                temp_board_state = copy.deepcopy(board_state)       #Create temporary board_state to check for potential
+                temp_X_or_O = 'O' if X_or_O == 'X' else 'X'         
+                temp_board_state[move[0]][move[1]] = temp_X_or_O    #winning moves
+                if three_in_a_row(temp_board_state, temp_X_or_O):
                     board_state[move[0]][move[1]] = X_or_O
 
     draw_board(board_state)
@@ -99,8 +108,6 @@ def next_move(board_state, turn, X_or_O):
         return 'O'
     else:
         return 'X'
-
-board_state[1][0] = 'O'
 
 while True:
     first_or_second = next_move(board_state, player_turn, first_or_second)
