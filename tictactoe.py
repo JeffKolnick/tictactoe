@@ -2,6 +2,8 @@ import copy
 import random
 
 board_state = [['_'] * 3 for _ in range(3)] #Track board state, initialized empty
+player_turn = 'X'                           #Track whose turn it is; X is always first
+move_made = [False]                            #Track if Computer move is made so it won't make multiple
 
 def draw_board(board_state):  
 
@@ -12,9 +14,7 @@ def draw_board(board_state):
     print(" {} | {} | {} ".format(' ' if board_state[2][0] == '_' else board_state[2][0],\
                                   ' ' if board_state[2][1] == '_' else board_state[2][1],\
                                   ' ' if board_state[2][2] == '_' else board_state[2][2]))
-  
-draw_board(board_state)
-
+ 
 def player_choice():
 
     #Asks player whether they want to go first (X's) or second (O's)
@@ -28,7 +28,6 @@ def player_choice():
     return player_input
 
 first_or_second = player_choice()           #Tracks if player is X's or O's
-
 
 def three_in_a_row(board_state, X_or_O):
 
@@ -50,8 +49,6 @@ def three_in_a_row(board_state, X_or_O):
         return True
     
     return False
-
-player_turn = 'X'
 
 def is_legal_move(board_state, row, col):
 
@@ -82,21 +79,25 @@ def collect_legal_moves(board_state, row ,col):
 
     return legal_moves
 
-def find_win(board_state, legal_moves, X_or_O):
+def find_win(board_state, legal_moves, X_or_O, move_made):
 
     #Finds and plays winning move for computer if available
-
+    if move_made[0]:                                       #Don't play if move already made
+        return 
+    
     for move in legal_moves:
         temp_board_state = copy.deepcopy(board_state)   #Create temporary board_state to check for potential
         temp_board_state[move[0]][move[1]] = X_or_O     #winning moves
-        if three_in_a_row(temp_board_state, X_or_O):                    
-            draw_board(temp_board_state)
-            print("{} wins!".format(X_or_O))
+        if three_in_a_row(temp_board_state, X_or_O):                  
+            board_state[move[0]][move[1]] = X_or_O 
+            move_made[0] = True
             return False
         
-def find_block(board_state, legal_moves, X_or_O):
+def find_block(board_state, legal_moves, X_or_O, move_made):
 
     #Finds and plays blocking move for computer if necessary
+    if move_made[0]:                                           #Don't play if move already made
+        return 
 
     for move in legal_moves:
         temp_board_state = copy.deepcopy(board_state)       #Create temporary board_state to check for potential winning moves
@@ -104,32 +105,55 @@ def find_block(board_state, legal_moves, X_or_O):
         temp_board_state[move[0]][move[1]] = temp_X_or_O    
         if three_in_a_row(temp_board_state, temp_X_or_O):
             board_state[move[0]][move[1]] = X_or_O
+            move_made[0] = True
             return switch_turn(X_or_O)
 
-def find_corner(board_state, legal_moves, X_or_O):
+def find_corner(board_state, legal_moves, X_or_O, move_made):
 
     #Corner squares are the best position if the centre is occupied
     #and no winning move exists for either player
+
+    if move_made[0]:                                   #Don't play if move already made
+        return 
 
     corner_moves = [(0,0), (0,2), (2,0), (2,2)]     #Define all four corners
     legal_corner_moves = []                         #Find and collect
     for move in legal_moves:                        #available corner
         if tuple(move) in corner_moves:                    #moves
             legal_corner_moves.append(move)
-
-    print(legal_moves, legal_corner_moves)
-
+    
     if len(legal_corner_moves) > 0:                         #Play random corner if there
         random_corner = random.choice(legal_corner_moves)   #are any
         board_state[random_corner[0]][random_corner[1]] = X_or_O
+        move_made[0] = True
         return switch_turn(X_or_O)
 
-def next_move(board_state, turn, X_or_O):
+def find_side(board_state, legal_moves, X_or_O, move_made):
 
-    #Main game driver
+    #Side squares are the only position if the centre is occupied,
+    #no winning move exists for either player and corners are occupied
+
+    if move_made[0]:                                   #Don't play if move already made
+        return 
     
-    row, col = 3, 3             #Set row and col out of bounds so as not to trigger while condition
+    corner_moves = [(0,1), (1,0), (1,2), (2,1)]     #Define all four sides
+    legal_side_moves = []                           #Find and collect
+    for move in legal_moves:                        #available corner
+        if tuple(move) in corner_moves:             #moves
+            legal_side_moves.append(move)
+    
+    if len(legal_side_moves) > 0:                       #Play random side if there
+        random_side = random.choice(legal_side_moves)   #are any
+        board_state[random_side[0]][random_side[1]] = X_or_O
+        move_made[0] = True
+        return switch_turn(X_or_O)
+    
+def next_move(board_state, turn, X_or_O, move_made):
 
+    #Main game driver   
+    draw_board(board_state)
+    row, col = 3, 3             #Set row and col out of bounds so as not to trigger while condition
+        
     if turn == X_or_O:          #Ask player for their move if it's their turn
         while not is_legal_move(board_state, row, col):
             row = int(input("Please input row"))
@@ -141,22 +165,23 @@ def next_move(board_state, turn, X_or_O):
         if board_state[1][1] == '_':    #If the centre is not taken, taking it is the best move
             board_state[1][1] = X_or_O
         
-        else:
-            
-            legal_moves = collect_legal_moves(board_state, row ,col)
-            find_win(board_state, legal_moves, X_or_O)  
-            find_block(board_state, legal_moves, X_or_O)          
-            find_corner(board_state, legal_moves, X_or_O)            
-
-    draw_board(board_state)
-    
+        else:  
+            move_made[0] = False                           #Track if Computer move is made so it won't make multiple
+          
+            legal_moves = collect_legal_moves(board_state, row ,col)    #Determine remaining legal moves
+            find_win(board_state, legal_moves, X_or_O, move_made)       #Check if computer can win
+            find_block(board_state, legal_moves, X_or_O, move_made)     #Check if human can win
+            find_corner(board_state, legal_moves, X_or_O, move_made)    #Check if corner space is available
+            find_side(board_state, legal_moves, X_or_O, move_made)      #Check if side space is available
+   
     if three_in_a_row(board_state, X_or_O):              #Check if anyone wins
         print("{} wins!".format(X_or_O))
+        draw_board(board_state)
         return False
 
     return switch_turn(X_or_O)
 
 while True:
-    first_or_second = next_move(board_state, player_turn, first_or_second)
+    first_or_second = next_move(board_state, player_turn, first_or_second, move_made)
     if not first_or_second:
         break
