@@ -156,8 +156,8 @@ def next_move(board_state, turn, X_or_O, move_made):
         
     if turn == X_or_O:          #Ask player for their move if it's their turn
         while not is_legal_move(board_state, row, col):
-            row = int(input("Please input row"))
-            col = int(input("Please input column"))
+            row = int(input("Please input row: "))
+            col = int(input("Please input column: "))
         
         board_state[row][col] = X_or_O
 
