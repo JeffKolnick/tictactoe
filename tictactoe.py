@@ -2,8 +2,8 @@ import copy
 import random
 
 board_state = [['_'] * 3 for _ in range(3)] #Track board state, initialized empty
-player_turn = 'X'                           #Track whose turn it is; X is always first
-move_made = [False]                            #Track if Computer move is made so it won't make multiple
+X_or_O = 'X'                           #Track whose turn it is; X is always first
+move_made = [False]                         #Track if Computer move is made so it won't make multiple
 
 def draw_board(board_state):  
 
@@ -66,7 +66,7 @@ def switch_turn(X_or_O):
     else:
         return 'X'
     
-def collect_legal_moves(board_state, row ,col):
+def collect_legal_moves(board_state, move_made):
 
     #Creates and returns array for the computer to be able
     #to evaluate and choose moves
@@ -77,8 +77,8 @@ def collect_legal_moves(board_state, row ,col):
             if is_legal_move(board_state, row ,col):
                 legal_moves.append([row, col])
 
-    return legal_moves
-
+    return legal_moves  
+        
 def find_win(board_state, legal_moves, X_or_O, move_made):
 
     #Finds and plays winning move for computer if available
@@ -148,13 +148,17 @@ def find_side(board_state, legal_moves, X_or_O, move_made):
         move_made[0] = True
         return switch_turn(X_or_O)
     
-def next_move(board_state, turn, X_or_O, move_made):
+def next_move(board_state, X_or_O, first_or_second, move_made):
 
     #Main game driver   
     draw_board(board_state)
-    row, col = 3, 3             #Set row and col out of bounds so as not to trigger while condition
-        
-    if turn == X_or_O:          #Ask player for their move if it's their turn
+    legal_moves = collect_legal_moves(board_state, move_made)   #Determine remaining legal moves            
+    if len(legal_moves) == 0:                                   #and end game if there are none
+        print("Drawn game")
+        return False
+    
+    if first_or_second == X_or_O:          #Ask player for their move if it's their turn
+        row, col = 3, 3             #Set row and col out of bounds so as not to trigger while condition
         while not is_legal_move(board_state, row, col):
             row = int(input("Please input row: "))
             col = int(input("Please input column: "))
@@ -168,7 +172,6 @@ def next_move(board_state, turn, X_or_O, move_made):
         else:  
             move_made[0] = False                           #Track if Computer move is made so it won't make multiple
           
-            legal_moves = collect_legal_moves(board_state, row ,col)    #Determine remaining legal moves
             find_win(board_state, legal_moves, X_or_O, move_made)       #Check if computer can win
             find_block(board_state, legal_moves, X_or_O, move_made)     #Check if human can win
             find_corner(board_state, legal_moves, X_or_O, move_made)    #Check if corner space is available
@@ -182,6 +185,6 @@ def next_move(board_state, turn, X_or_O, move_made):
     return switch_turn(X_or_O)
 
 while True:
-    first_or_second = next_move(board_state, player_turn, first_or_second, move_made)
-    if not first_or_second:
+    X_or_O = next_move(board_state, X_or_O, first_or_second, move_made)
+    if not X_or_O:
         break
